@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const categoryController_1 = require("../../controllers/categoryController");
+const validate_1 = require("../../middleware/validate");
+const common_1 = require("../../validators/common");
+const categoryValidator_1 = require("../../validators/categoryValidator");
+const router = (0, express_1.Router)();
+router.get("/", (0, validate_1.validateQuery)(categoryValidator_1.publicCategoryQuerySchema), categoryController_1.getPublicCategories);
+router.get("/:slug", (0, validate_1.validateParams)(common_1.slugParamSchema), categoryController_1.getPublicCategory);
+exports.default = router;

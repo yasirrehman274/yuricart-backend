@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const bannerController_1 = require("../../controllers/bannerController");
+const validate_1 = require("../../middleware/validate");
+const common_1 = require("../../validators/common");
+const bannerValidator_1 = require("../../validators/bannerValidator");
+const router = (0, express_1.Router)();
+router.get("/", (0, validate_1.validateQuery)(bannerValidator_1.publicBannerQuerySchema), bannerController_1.getPublicBanners);
+router.get("/:slug", (0, validate_1.validateParams)(common_1.slugParamSchema), bannerController_1.getPublicBanner);
+exports.default = router;

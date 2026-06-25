@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const brandController_1 = require("../../controllers/brandController");
+const auth_1 = require("../../middleware/auth");
+const validate_1 = require("../../middleware/validate");
+const common_1 = require("../../validators/common");
+const brandValidator_1 = require("../../validators/brandValidator");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate, auth_1.requireAdmin);
+router.get("/", (0, validate_1.validateQuery)(brandValidator_1.adminBrandQuerySchema), brandController_1.getAdminBrands);
+router.get("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), brandController_1.getAdminBrand);
+router.post("/", (0, validate_1.validateBody)(brandValidator_1.createBrandSchema), brandController_1.createAdminBrand);
+router.patch("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), (0, validate_1.validateBody)(brandValidator_1.updateBrandSchema), brandController_1.updateAdminBrand);
+router.delete("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), brandController_1.deleteAdminBrand);
+exports.default = router;

@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const bannerController_1 = require("../../controllers/bannerController");
+const auth_1 = require("../../middleware/auth");
+const validate_1 = require("../../middleware/validate");
+const common_1 = require("../../validators/common");
+const bannerValidator_1 = require("../../validators/bannerValidator");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate, auth_1.requireAdmin);
+router.get("/", (0, validate_1.validateQuery)(bannerValidator_1.adminBannerQuerySchema), bannerController_1.getAdminBanners);
+router.get("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), bannerController_1.getAdminBanner);
+router.post("/", (0, validate_1.validateBody)(bannerValidator_1.createBannerSchema), bannerController_1.createAdminBanner);
+router.patch("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), (0, validate_1.validateBody)(bannerValidator_1.updateBannerSchema), bannerController_1.updateAdminBanner);
+router.delete("/:id", (0, validate_1.validateParams)(common_1.idParamSchema), bannerController_1.deleteAdminBanner);
+exports.default = router;
