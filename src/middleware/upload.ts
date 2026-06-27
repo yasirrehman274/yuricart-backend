@@ -26,6 +26,8 @@ export const uploadProductImages = upload.fields([
   { name: "galleryImages", maxCount: 10 },
 ]);
 
+export const uploadSingleImage = upload.single("image");
+
 export function handleUploadError(
   err: unknown,
   _req: Request,

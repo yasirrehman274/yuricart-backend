@@ -15,7 +15,7 @@ export const createBannerSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
   slug: z.string().min(1).optional(),
-  image: z.string().min(1),
+  image: z.string().optional(),
   link: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
   sortOrder: z.coerce.number().int().optional(),

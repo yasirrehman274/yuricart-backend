@@ -12,9 +12,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/response";
 import {
   AdminBrandQuery,
-  CreateBrandInput,
   PublicBrandQuery,
-  UpdateBrandInput,
 } from "../validators/brandValidator";
 
 export const getPublicBrands = asyncHandler(async (req: Request, res: Response) => {
@@ -38,12 +36,16 @@ export const getAdminBrand = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const createAdminBrand = asyncHandler(async (req: Request, res: Response) => {
-  const brand = await createBrand(req.body as CreateBrandInput);
+  const file = req.file;
+  const body = req.body as Record<string, unknown>;
+  const brand = await createBrand(body, file);
   sendSuccess(res, brand, 201);
 });
 
 export const updateAdminBrand = asyncHandler(async (req: Request, res: Response) => {
-  const brand = await updateBrand(req.params.id, req.body as UpdateBrandInput);
+  const file = req.file;
+  const body = req.body as Record<string, unknown>;
+  const brand = await updateBrand(req.params.id, body, file);
   sendSuccess(res, brand);
 });
 

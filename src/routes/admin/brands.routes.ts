@@ -8,6 +8,7 @@ import {
 } from "../../controllers/brandController";
 import { authenticate, requireAdmin } from "../../middleware/auth";
 import { validateBody, validateParams, validateQuery } from "../../middleware/validate";
+import { uploadSingleImage, handleUploadError } from "../../middleware/upload";
 import { idParamSchema } from "../../validators/common";
 import {
   adminBrandQuerySchema,
@@ -21,8 +22,8 @@ router.use(authenticate, requireAdmin);
 
 router.get("/", validateQuery(adminBrandQuerySchema), getAdminBrands);
 router.get("/:id", validateParams(idParamSchema), getAdminBrand);
-router.post("/", validateBody(createBrandSchema), createAdminBrand);
-router.patch("/:id", validateParams(idParamSchema), validateBody(updateBrandSchema), updateAdminBrand);
+router.post("/", uploadSingleImage, handleUploadError, validateBody(createBrandSchema), createAdminBrand);
+router.patch("/:id", validateParams(idParamSchema), uploadSingleImage, handleUploadError, validateBody(updateBrandSchema), updateAdminBrand);
 router.delete("/:id", validateParams(idParamSchema), deleteAdminBrand);
 
 export default router;

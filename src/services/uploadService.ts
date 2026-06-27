@@ -49,3 +49,6 @@ export async function deleteMultipleFromCloudinary(
 
 export const PRODUCT_IMAGE_FOLDER = "yuricart/products";
 export const GALLERY_IMAGE_FOLDER = "yuricart/products/gallery";
+export const CATEGORY_IMAGE_FOLDER = "yuricart/categories";
+export const BRAND_IMAGE_FOLDER = "yuricart/brands";
+export const BANNER_IMAGE_FOLDER = "yuricart/banners";

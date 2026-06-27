@@ -12,9 +12,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/response";
 import {
   AdminBannerQuery,
-  CreateBannerInput,
   PublicBannerQuery,
-  UpdateBannerInput,
 } from "../validators/bannerValidator";
 
 export const getPublicBanners = asyncHandler(async (req: Request, res: Response) => {
@@ -37,13 +35,36 @@ export const getAdminBanner = asyncHandler(async (req: Request, res: Response) =
   sendSuccess(res, banner);
 });
 
+const NUMERIC_FIELDS = new Set(["sortOrder"]);
+
+function normalizeFormBody(body: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (NUMERIC_FIELDS.has(key)) {
+      if (value === "" || value === undefined || value === null) {
+        result[key] = undefined;
+      } else {
+        const num = Number(value);
+        result[key] = isNaN(num) ? value : num;
+      }
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export const createAdminBanner = asyncHandler(async (req: Request, res: Response) => {
-  const banner = await createBanner(req.body as CreateBannerInput);
+  const file = req.file;
+  const body = normalizeFormBody(req.body as Record<string, unknown>);
+  const banner = await createBanner(body, file);
   sendSuccess(res, banner, 201);
 });
 
 export const updateAdminBanner = asyncHandler(async (req: Request, res: Response) => {
-  const banner = await updateBanner(req.params.id, req.body as UpdateBannerInput);
+  const file = req.file;
+  const body = normalizeFormBody(req.body as Record<string, unknown>);
+  const banner = await updateBanner(req.params.id, body, file);
   sendSuccess(res, banner);
 });
 

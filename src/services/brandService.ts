@@ -1,9 +1,10 @@
 import { FilterQuery } from "mongoose";
-import { Brand, IBrand } from "../models/Brand";
+import { Brand, IBrand, ImageData } from "../models/Brand";
 import { NotFoundError } from "../utils/ApiError";
 import { buildPaginationMeta, getPagination } from "../utils/pagination";
 import { parseSort } from "../utils/query";
 import { ensureUniqueSlug } from "../utils/slug";
+import { uploadBuffer, deleteFromCloudinary, BRAND_IMAGE_FOLDER } from "./uploadService";
 import {
   AdminBrandQuery,
   CreateBrandInput,
@@ -68,32 +69,88 @@ export async function getAdminBrandById(id: string) {
   return brand;
 }
 
-export async function createBrand(input: CreateBrandInput) {
+export async function createBrand(
+  input: Record<string, unknown>,
+  file?: Express.Multer.File,
+) {
   const slug = input.slug
-    ? await ensureUniqueSlug(Brand, input.slug)
-    : await ensureUniqueSlug(Brand, input.name);
+    ? await ensureUniqueSlug(Brand, input.slug as string)
+    : await ensureUniqueSlug(Brand, input.name as string);
 
-  return Brand.create({ ...input, slug });
+  let image: ImageData = { url: "" };
+  if (file) {
+    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER);
+  } else if (input.image) {
+    image = typeof input.image === "string" ? { url: input.image } : input.image as ImageData;
+  } else if (input.logo) {
+    image = { url: input.logo as string };
+  }
+
+  return Brand.create({ ...input, slug, image });
 }
 
-export async function updateBrand(id: string, input: UpdateBrandInput) {
+export async function updateBrand(
+  id: string,
+  input: Record<string, unknown>,
+  file?: Express.Multer.File,
+) {
   const existing = await Brand.findById(id);
   if (!existing) throw new NotFoundError("Brand not found");
 
-  let slug = input.slug;
+  let slug = input.slug as string | undefined;
   if (input.slug) {
-    slug = await ensureUniqueSlug(Brand, input.slug, id);
+    slug = await ensureUniqueSlug(Brand, input.slug as string, id);
   } else if (input.name && input.name !== existing.name) {
-    slug = await ensureUniqueSlug(Brand, input.name, id);
+    slug = await ensureUniqueSlug(Brand, input.name as string, id);
   }
 
-  Object.assign(existing, { ...input, ...(slug ? { slug } : {}) });
+  const rawImage = existing.image as ImageData | undefined;
+  const currentPublicId = rawImage?.publicId;
+
+  let image: ImageData = rawImage || { url: "" };
+
+  if (file) {
+    if (currentPublicId) {
+      await deleteFromCloudinary(currentPublicId);
+    }
+    image = await uploadBuffer(file.buffer, BRAND_IMAGE_FOLDER);
+  } else if (input.image === "") {
+    if (currentPublicId) {
+      await deleteFromCloudinary(currentPublicId);
+    }
+    image = { url: "" };
+  } else if (input.image && typeof input.image === "string") {
+    image = { url: input.image as string };
+  } else if (input.logo && typeof input.logo === "string") {
+    image = { url: input.logo as string };
+  }
+
+  const updateData: Record<string, unknown> = {};
+  const fields = ["name", "status"];
+  for (const field of fields) {
+    if (field in input) {
+      updateData[field] = input[field];
+    }
+  }
+
+  Object.assign(existing, {
+    ...updateData,
+    ...(slug ? { slug } : {}),
+    image,
+  });
   await existing.save();
   return existing.toObject();
 }
 
 export async function deleteBrand(id: string) {
-  const brand = await Brand.findByIdAndDelete(id);
+  const brand = await Brand.findById(id);
   if (!brand) throw new NotFoundError("Brand not found");
+
+  const rawImage = brand.image as ImageData | undefined;
+  if (rawImage?.publicId) {
+    await deleteFromCloudinary(rawImage.publicId);
+  }
+
+  await Brand.findByIdAndDelete(id);
   return { id };
 }

@@ -12,9 +12,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/response";
 import {
   AdminCategoryQuery,
-  CreateCategoryInput,
   PublicCategoryQuery,
-  UpdateCategoryInput,
 } from "../validators/categoryValidator";
 
 export const getPublicCategories = asyncHandler(async (req: Request, res: Response) => {
@@ -37,13 +35,36 @@ export const getAdminCategory = asyncHandler(async (req: Request, res: Response)
   sendSuccess(res, category);
 });
 
+const NUMERIC_FIELDS = new Set(["sortOrder"]);
+
+function normalizeFormBody(body: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (NUMERIC_FIELDS.has(key)) {
+      if (value === "" || value === undefined || value === null) {
+        result[key] = undefined;
+      } else {
+        const num = Number(value);
+        result[key] = isNaN(num) ? value : num;
+      }
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export const createAdminCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await createCategory(req.body as CreateCategoryInput);
+  const file = req.file;
+  const body = normalizeFormBody(req.body as Record<string, unknown>);
+  const category = await createCategory(body, file);
   sendSuccess(res, category, 201);
 });
 
 export const updateAdminCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await updateCategory(req.params.id, req.body as UpdateCategoryInput);
+  const file = req.file;
+  const body = normalizeFormBody(req.body as Record<string, unknown>);
+  const category = await updateCategory(req.params.id, body, file);
   sendSuccess(res, category);
 });
 
