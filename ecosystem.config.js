@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "yuricart-api",
       cwd: __dirname,
-      script: "dist/server.js",
+      script: "src/server.js",
       instances: 1,
       autorestart: true,
       watch: false,
