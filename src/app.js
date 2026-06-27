@@ -35,6 +35,9 @@ function createApp() {
       legacyHeaders: false,
     }),
   );
+  app.get("/", (req, res) => {
+    res.send("Yuricart API is running");
+  });
 
   app.use("/api/v1", routes);
 
