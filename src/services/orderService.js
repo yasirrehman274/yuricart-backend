@@ -5,6 +5,7 @@ const { buildPaginationMeta, getPagination } = require("../utils/pagination");
 const { parseSort } = require("../utils/query");
 const { incrementCouponUsage, validateCoupon } = require("./couponService");
 const { calculateShippingCost } = require("./shippingService");
+const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("./emailService");
 
 function getProductPrice(product) {
   return product.salePrice ?? product.price;
@@ -177,6 +178,10 @@ async function createOrder(input, customerId) {
     await incrementCouponUsage(couponId);
   }
 
+  sendOrderConfirmationEmail(order.toObject()).catch((err) =>
+    console.error("Failed to send order confirmation email:", err.message),
+  );
+
   return order.toObject();
 }
 
@@ -279,6 +284,8 @@ async function updateOrderStatus(id, input) {
   const order = await Order.findById(id);
   if (!order) throw new NotFoundError("Order not found");
 
+  const previousStatus = order.orderStatus;
+
   if (input.orderStatus) order.orderStatus = input.orderStatus;
   if (input.paymentStatus) order.paymentStatus = input.paymentStatus;
   if (input.trackingNumber !== undefined) order.trackingNumber = input.trackingNumber;
@@ -289,9 +296,17 @@ async function updateOrderStatus(id, input) {
 
   await order.save();
 
-  return Order.findById(order._id)
+  const updatedOrder = await Order.findById(order._id)
     .populate("customer", "name email phone")
     .lean();
+
+  if (input.orderStatus && input.orderStatus !== previousStatus) {
+    sendOrderStatusEmail(updatedOrder, input.orderStatus).catch((err) =>
+      console.error("Failed to send order status email:", err.message),
+    );
+  }
+
+  return updatedOrder;
 }
 
 async function assertOrderBelongsToUser(orderId, userId) {

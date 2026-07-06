@@ -106,6 +106,22 @@ const deleteAdminProduct = asyncHandler(async (req, res) => {
   sendSuccess(res, result);
 });
 
+const { sendProductRequestEmail } = require("../services/emailService");
+
+const submitProductRequest = asyncHandler(async (req, res) => {
+  const { customerName, customerEmail, productName, quantity, message } = req.body;
+
+  await sendProductRequestEmail({
+    customerName: customerName || "Anonymous",
+    customerEmail,
+    productName: productName || "Unknown Product",
+    quantity,
+    message,
+  });
+
+  sendSuccess(res, { message: "Product request submitted successfully." }, 200);
+});
+
 module.exports = {
   getPublicProducts,
   getPublicProduct,
@@ -116,4 +132,5 @@ module.exports = {
   createAdminProduct,
   updateAdminProduct,
   deleteAdminProduct,
+  submitProductRequest,
 };

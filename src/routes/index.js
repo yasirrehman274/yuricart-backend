@@ -46,6 +46,7 @@ const publicCouponsRoutes = require("./public/coupons.routes");
 const publicOrdersRoutes = require("./public/orders.routes");
 
 const publicProductsRoutes = require("./public/products.routes");
+const publicProductRequestsRoutes = require("./public/productRequests.routes");
 
 const { categoryProductsRouter } = require("./public/products.routes");
 
@@ -71,6 +72,7 @@ router.use("/orders", publicOrdersRoutes);
 router.use("/coupons", publicCouponsRoutes);
 
 router.use("/products", publicProductsRoutes);
+router.use("/product-requests", publicProductRequestsRoutes);
 
 router.use("/categories", publicCategoriesRoutes);
 
