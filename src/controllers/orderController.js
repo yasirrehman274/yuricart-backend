@@ -12,8 +12,10 @@ const { sendSuccess } = require("../utils/response");
 const createPublicOrder = asyncHandler(async (req, res) => {
   const customerId =
     req.user?.role === "customer" ? req.user.sub : undefined;
+  const customerEmail =
+    req.user?.role === "customer" ? req.user.email : undefined;
 
-  const order = await createOrder(req.body, customerId);
+  const order = await createOrder(req.body, customerId, customerEmail);
   sendSuccess(res, order, 201);
 });
 
@@ -26,7 +28,7 @@ const trackPublicOrder = asyncHandler(async (req, res) => {
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {
-  const result = await getUserOrders(req.user.sub, req.query);
+  const result = await getUserOrders(req.user.sub, req.user.email, req.query);
   sendSuccess(res, result.items, 200, result.meta);
 });
 
