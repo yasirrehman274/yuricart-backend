@@ -125,7 +125,7 @@ async function applyStockUpdates(stockUpdates) {
   }
 }
 
-async function createOrder(input, customerId) {
+async function createOrder(input, customerId, customerEmail) {
   const { lineItems, subtotal } = await resolveLineItems(input.items);
 
   let discount = 0;
@@ -152,7 +152,7 @@ async function createOrder(input, customerId) {
     orderNumber,
     customer: customerId || undefined,
     customerName: input.customerName,
-    email: input.email.toLowerCase(),
+    email: (customerEmail || input.email).toLowerCase(),
     phone: input.phone,
     address: input.address,
     city: input.city,
@@ -211,9 +211,11 @@ async function trackOrder(orderNumber, email) {
   return order;
 }
 
-async function getUserOrders(userId, query) {
+async function getUserOrders(userId, userEmail, query) {
   const { page, limit, skip } = getPagination(query);
-  const filter = { customer: userId };
+  const filter = {
+    $or: [{ customer: userId }, { email: userEmail }],
+  };
 
   const [items, total] = await Promise.all([
     Order.find(filter)
